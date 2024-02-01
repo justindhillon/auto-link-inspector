@@ -1,0 +1,17 @@
+{
+  "name": "auto-link-inspector",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "A script that automatically runs link inspector on trending repositories on github",
+  "main": "getTrendingRepos.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cheerio": "^1.0.0-rc.12",
+    "node-fetch": "^3.3.2"
+  }
+}
