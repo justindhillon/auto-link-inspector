@@ -1,72 +1,61 @@
-import os
-import json
-import shutil
-import requests
-import subprocess
+import os, json, shutil, requests, subprocess
 from bs4 import BeautifulSoup
 
-def save_to_json(data, filename):
-    with open(filename, 'w') as json_file:
-        json.dump(data, json_file)
+###############################################################
+# Puts all the urls of the trending github repos in repo_urls #
+###############################################################
 
-def load_from_json(filename):
-    try:
-        with open(filename, 'r') as json_file:
-            return json.load(json_file)
-    except FileNotFoundError:
-        return []
-
-def remove_existing_strings(new_array, existing_array):
-    return [item for item in new_array if item not in existing_array]
-
-URL = "https://github.com/trending"
-page = requests.get(URL)
-
+page = requests.get("https://github.com/trending")
 soup = BeautifulSoup(page.content, "html.parser")
-articles = soup.find_all("article")
 
-new_array = []
+articles = soup.find_all("article")
+repo_urls = []
 
 for article in articles:
-    articl = article.find_all("h2")
-    for artic in articl:
-        arti = artic.find_all("a")
-        for art in arti:
-            link = art["href"]
-            new_array.append("https://github.com" + link)
+    h2 = article.find('h2', class_='h3').text
+    repo_name = h2.replace("\n", "").replace(" ", "")
+    repo_urls.append("https://github.com/" + repo_name)
 
-json_filename = "data.json"
-existing_array = load_from_json(json_filename)
-filtered_array = remove_existing_strings(new_array, existing_array)
-save_to_json(existing_array + filtered_array, json_filename)
+#################################################
+# Removes all the repo urls that are already    #
+# scanned by comparing them with old_repos.json #
+#################################################
 
-def delete_directory(directory_path):
-    # Iterate over all items in the directory
-    for item in os.listdir(directory_path):
-        item_path = os.path.join(directory_path, item)
+try: # In a try catch in case old_repos.json doesn't exist
+    with open("old_repos.json", 'r') as json_file:
+        old_repos = json.load(json_file)
+except:
+    old_repos = []
 
-        # Check if it's a file or a directory
-        if os.path.isfile(item_path):
-            # If it's a file, delete it
-            os.remove(item_path)
-        elif os.path.isdir(item_path):
-            # If it's a directory, delete it recursively using shutil.rmtree
-            shutil.rmtree(item_path)
+# Filter out old repos
+repo_urls = [item for item in repo_urls if item not in old_repos]
 
-def download_repositories(urls, target_directory):
-    if not os.path.exists(target_directory):
-        os.makedirs(target_directory)
+# If there are no new repos, stop the program
+if (not repo_urls):
+    print("There are no new trending repos!")
+    quit()
 
-    for url in urls:
-        # Extract repository name from URL
-        repo_name = url.split('/')[-1].rstrip('.git')
+# Add new repos to old_repos.json
+with open("old_repos.json", 'w') as json_file:
+    json.dump(old_repos + repo_urls, json_file)
 
-        # Clone the repository
-        target_path = os.path.join(target_directory, repo_name)
-        subprocess.run(['git', 'clone', url, target_path])
+##############################################
+# Clone all the repos and run link-inspector #
+##############################################
 
 directory_path = 'repos'
 
-delete_directory(directory_path)
-download_repositories(filtered_array, directory_path)
+# Delete old repos in directory_path
+if os.path.exists(directory_path):
+    shutil.rmtree(directory_path)
+else:
+    os.makedirs(directory_path)
+
+# Clone the repos
+for repo_url in repo_urls:
+    repo_name = repo_url.split('/')[-1]
+    target_path = os.path.join(directory_path, repo_name)
+    subprocess.run(['git', 'clone', repo_url, target_path])
+
+# Run link-inspector on directory_path
 subprocess.run(['npx', 'link-inspector', directory_path])

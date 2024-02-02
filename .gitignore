@@ -1,5 +1,6 @@
-data.json
+old_repos.json
 package.json
 package-lock.json
 repos
 node_modules
+output
