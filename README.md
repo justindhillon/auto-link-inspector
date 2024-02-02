@@ -14,7 +14,9 @@ Auto-Link-Inspector is a Python script designed to streamline the process of ins
 Before using Auto-Link-Inspector, ensure that you have the following prerequisites installed on your system:
 
 - Python 3.x
+- Pip3
 - NodeJs
+- NPM
 - Git
 
 ## Installation
