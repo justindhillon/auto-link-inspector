@@ -1,5 +1,6 @@
 import os
 import json
+import shutil
 import requests
 import subprocess
 from bs4 import BeautifulSoup
@@ -39,6 +40,19 @@ existing_array = load_from_json(json_filename)
 filtered_array = remove_existing_strings(new_array, existing_array)
 save_to_json(existing_array + filtered_array, json_filename)
 
+def delete_directory(directory_path):
+    # Iterate over all items in the directory
+    for item in os.listdir(directory_path):
+        item_path = os.path.join(directory_path, item)
+
+        # Check if it's a file or a directory
+        if os.path.isfile(item_path):
+            # If it's a file, delete it
+            os.remove(item_path)
+        elif os.path.isdir(item_path):
+            # If it's a directory, delete it recursively using shutil.rmtree
+            shutil.rmtree(item_path)
+
 def download_repositories(urls, target_directory):
     if not os.path.exists(target_directory):
         os.makedirs(target_directory)
@@ -51,5 +65,8 @@ def download_repositories(urls, target_directory):
         target_path = os.path.join(target_directory, repo_name)
         subprocess.run(['git', 'clone', url, target_path])
 
-download_repositories(filtered_array, 'repos')
-subprocess.run(['npx', 'link-inspector', 'repos/'])
+directory_path = 'repos'
+
+delete_directory(directory_path)
+download_repositories(filtered_array, directory_path)
+subprocess.run(['npx', 'link-inspector', directory_path])
