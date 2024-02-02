@@ -36,7 +36,7 @@ Install the required Python packages:
 
 Run the script with the following command:
 
-    python auto_link_inspector.py
+    python main.py
 
 This will automatically download trending GitHub repositories and run link-inspector on them. The results will be stored in ```repos```.
 
