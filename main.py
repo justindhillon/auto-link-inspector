@@ -1,5 +1,7 @@
+import os
 import json
 import requests
+import subprocess
 from bs4 import BeautifulSoup
 
 def save_to_json(data, filename):
@@ -33,10 +35,21 @@ for article in articles:
             new_array.append("https://github.com" + link)
 
 json_filename = "data.json"
-
 existing_array = load_from_json(json_filename)
 filtered_array = remove_existing_strings(new_array, existing_array)
-
 save_to_json(existing_array + filtered_array, json_filename)
 
-print(filtered_array)
+def download_repositories(urls, target_directory):
+    if not os.path.exists(target_directory):
+        os.makedirs(target_directory)
+
+    for url in urls:
+        # Extract repository name from URL
+        repo_name = url.split('/')[-1].rstrip('.git')
+
+        # Clone the repository
+        target_path = os.path.join(target_directory, repo_name)
+        subprocess.run(['git', 'clone', url, target_path])
+
+download_repositories(filtered_array, 'repos')
+subprocess.run(['npx', 'link-inspector', 'repos/'])
